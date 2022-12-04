@@ -21,7 +21,7 @@ public class VecIntEditor : Editor
         ctrl.point = DrawGizmo(ctrl.point);
 
         float d = 0.0f;
-        ctrl.result = VecIntOperation.ComputePointToLine(ctrl.point, ctrl.lineA, ctrl.lineB, 1.0f, 1.0f, ref d);
+        ctrl.result = VecIntOperation.ComputePointToLine(ctrl.point, ctrl.lineA, ctrl.lineB, 0.5f, 0.5f, ref d);
         ctrl.distance = d;
     }
 
@@ -39,7 +39,6 @@ public class VecIntEditor : Editor
             v2 = new Vector2Int((int)(p.x * unit), (int)(p.y * unit));
         }
         return v2;
-
     }
 
     private void DrawPolyline(Vector2Int a, Vector2Int b)

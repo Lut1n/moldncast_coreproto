@@ -25,22 +25,21 @@ public class RayCastEditor : Editor
         Handles.color = Color.red;
         Handles.DrawLine((Vector2)(ctrl.origin) / unit, (Vector2)(ctrl.point) / unit);
 
-        List<VecIntOperation.Line> iLines = new List<VecIntOperation.Line>();
-        List<Vector2Int> iPoints = new List<Vector2Int>();
-
-        float d = 0.0f;
-        ctrl.result = VecIntOperation.PolygonRayCast(ctrl.origin, ctrl.point, ctrl.path, ctrl.subdiv, ref iLines, ref iPoints);
-        ctrl.ilines = iLines.Count;
-        ctrl.ipoints = iPoints.Count;
-        ctrl.distance = d;
+        VecIntOperation.PolygonRayCastInfo info = new VecIntOperation.PolygonRayCastInfo();
+        List<Vector2Int> polygon = VecIntOperation.SubdivisePath(ctrl.path, ctrl.subdiv);
+        if (ctrl.autoRay) ctrl.origin = VecIntOperation.OutsidePoint(polygon, ctrl.point);
+        ctrl.result = VecIntOperation.PolygonPointSide(ctrl.origin, ctrl.point, polygon, ref info);
+        ctrl.ilines = info.intersectLines.Count;
+        ctrl.ipoints = info.intersectPoints.Count;
+        ctrl.distance = 0.0f;
         
-        foreach(var l in iLines)
+        foreach(var l in info.intersectLines)
         {
             Handles.color = Color.blue;
             Handles.DrawLine((Vector2)(l.a) / unit, (Vector2)(l.b) / unit);
         }
 
-        foreach(var p in iPoints)
+        foreach(var p in info.intersectPoints)
         {
             DrawDot(p, 0.02f, Color.blue);
         }

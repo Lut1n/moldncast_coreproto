@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class LinearRing2i : LinearRing<Vector2Int>
 {
     // public Vector2 insidePoint;

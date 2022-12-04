@@ -154,8 +154,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lineA: {x: -521, y: -234}
   lineB: {x: 181, y: 75}
-  point: {x: -25, y: 59}
-  distance: 68.347046
+  point: {x: -54, y: 70}
+  distance: 90.0981
   result: 2
 --- !u!4 &987947664
 Transform:
@@ -181,7 +181,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1466226569}
-  - component: {fileID: 1466226568}
+  - component: {fileID: 1466226571}
   - component: {fileID: 1466226570}
   m_Layer: 0
   m_Name: SegVsPolygon
@@ -190,21 +190,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1466226568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1466226565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a9fb40d893d905a4da1e46b59749814d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sideCount: 3
-  size: 1
-  rotation: 0
 --- !u!4 &1466226569
 Transform:
   m_ObjectHideFlags: 0
@@ -233,15 +218,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   path:
-  - {x: -25, y: 89}
-  - {x: -40, y: -46}
-  - {x: -209, y: -46}
+  - {x: 45, y: 171}
+  - {x: -41, y: -46}
+  - {x: -226, y: -46}
   - {x: -38, y: -212}
-  - {x: 178, y: -64}
+  - {x: 174, y: 10}
   subdiv: 5
-  origin: {x: -231, y: -46}
-  point: {x: -13, y: -46}
+  origin: {x: -246, y: -46}
+  point: {x: 14, y: -46}
   distance: 0
-  ilines: 0
-  ipoints: 0
-  result: 2
+  ilines: 1
+  ipoints: 7
+  result: 3
+  autoRay: 1
+--- !u!114 &1466226571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1466226565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9fb40d893d905a4da1e46b59749814d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sideCount: 3
+  size: 1
+  rotation: 0

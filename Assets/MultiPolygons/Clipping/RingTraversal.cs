@@ -6,7 +6,7 @@ public class ToVisitCache
 {
     public struct Item
     {
-        public Vector2Int setpath;
+        public Vector3Int indexes;
         public Vector2Int node;
     }
 
@@ -22,28 +22,72 @@ public class ToVisitCache
         Debug.Assert(!Empty(), "Error: cannot pick in an empty list");
 
         var ret = toVisit[0];
-        toVisit.RemoveAt(0);
+        RemoveAll(ret.node);
         return ret;
     }
 
-    public void AddPointToVisit(int set, int path, Vector2Int node)
+    public void AddPointToVisit(int set, int path, int node, Vector2Int value)
     {
-        Item item; item.setpath = new Vector2Int(set, path); item.node =node;
+        Item item;
+        item.indexes = new Vector3Int(set, path, node);
+        item.node = value;
         if (!toVisit.Contains(item))
             toVisit.Add(item);
     }
 
-    public void Remove(int set, int path, Vector2Int node)
+    public void RemoveAll(Vector2Int node)
     {
-        Item item; item.setpath = new Vector2Int(set, path); item.node = node;
-        if (toVisit.Contains(item))
-            toVisit.Remove(item);
+        List<Item> toVisit2 = new List<Item>();
+        foreach(var item in toVisit)
+        {
+            if (item.node != node)
+                toVisit2.Add(item);
+        }
+        var removed = (toVisit.Count - toVisit2.Count);
+        // Debug.Log("removed " + removed + " " + node + " - remaining " + toVisit2.Count);
+        toVisit = toVisit2;
     }
 }
 
 public class RingTraversal
 {
     public delegate bool PathFilterHandler(LinearRing2i path);
+
+    static public ISeg SegToSeg(Vector2Int a1, Vector2Int a2, Vector2Int b1, Vector2Int b2, ref Vector2Int ipt)
+    {
+        // 3 cases have to be tested:
+        // (1) - intersection of segments (lines). Returns Yes
+        // (2) - if points are same. Returns Edge
+        // (3) - if a point is on a line. Return Edge
+
+        var res = GeometryMath.SegToSeg(a1, a2, b1, b2, ref ipt);
+        if (res == ISeg.No)
+        {
+            float ignored = 0.0f;
+            // (1) and (2) are false. Let's test (3)
+            if (VecIntOperation.ComputePointToLine(a1, b1, b2, 0.5f, 0.5f, ref ignored) == VecIntOperation.Result.OnTheLine)
+            {
+                ipt = a1;
+                return ISeg.Edge;
+            }
+            if (VecIntOperation.ComputePointToLine(a2, b1, b2, 0.5f, 0.5f, ref ignored) == VecIntOperation.Result.OnTheLine)
+            {
+                ipt = a2;
+                return ISeg.Edge;
+            }
+            if (VecIntOperation.ComputePointToLine(b1, a1, a2, 0.5f, 0.5f, ref ignored) == VecIntOperation.Result.OnTheLine)
+            {
+                ipt = b1;
+                return ISeg.Edge;
+            }
+            if (VecIntOperation.ComputePointToLine(b2, a1, a2, 0.5f, 0.5f, ref ignored) == VecIntOperation.Result.OnTheLine)
+            {
+                ipt = b2;
+                return ISeg.Edge;
+            }
+        }
+        return res;
+    }
 
     static public IPointCache ComputeIPoints(MultiPolygon2i polygons1, MultiPolygon2i polygons2)
     {
@@ -62,14 +106,63 @@ public class RingTraversal
                         continue;
                     for(int n2=0; n2<path2.Count(); ++n2)
                     {
-                        if (GeometryMath.SegToSeg(path1.At(n1), path1.At(n1 + 1), path2.At(n2), path2.At(n2 + 1), ref ipt) == ISeg.Yes)
+                        if (SegToSeg(path1.At(n1), path1.At(n1 + 1), path2.At(n2), path2.At(n2 + 1), ref ipt) != ISeg.No)
                         {
-                            ret.Add(new SegmentPair(pathIdx1, n1, pathIdx2, n2), ipt);
+                            int refn1 = n1;
+                            int refn2 = n2;
+
+                            if (ipt == path1.At(refn1 + 1))
+                                refn1 = path1.LoopIdx(refn1 + 1);
+                            if (ipt == path2.At(refn2 + 1))
+                                refn2 = path1.LoopIdx(refn2 + 1);
+                            ret.Add(new SegmentPair(pathIdx1, refn1, pathIdx2, refn2), ipt);
                         }
                     }
                 }
             }
         }
+        return ret;
+    }
+
+    static public void RegisterPoints(MultiPolygon2i polygons, int polygonId, PointsInfo info)
+    {
+        for (int pathId = 0; pathId < polygons.Count(); pathId++)
+        {
+            LinearRing2i path = polygons.Get(pathId);
+            info.AddRing(polygonId, pathId);
+            for(int n1=0; n1<path.Count(); ++n1)
+            {
+                info.Add(path.At(n1), polygonId, pathId, n1);
+            }
+        }
+    }
+
+    static public PointsInfo ComputeInfos(MultiPolygon2i polygons1, MultiPolygon2i polygons2)
+    {
+        PointsInfo ret = new PointsInfo();
+        RegisterPoints(polygons1, 0, ret);
+        RegisterPoints(polygons2, 1, ret);
+
+        foreach(var info in ret.infos)
+        {
+            for(int ringid = 0; ringid < ret.rings.Count; ringid++)
+            {
+                var ring = ret.rings[ringid];
+                LinearRing2i path;
+                if (ring.x == 0)
+                    path = polygons1.Get(ring.y);
+                else
+                    path = polygons2.Get(ring.y);
+                Side side = MultiPolygon2iOperation.GetSide(path, info.value);
+                if (side == Side.In)
+                    info.inRings.Add(ringid);
+                if (side == Side.Out)
+                    info.outRings.Add(ringid);
+                if (side == Side.Edge)
+                    info.edgeRings.Add(ringid);
+            }
+        }
+
         return ret;
     }
 
@@ -101,57 +194,156 @@ public class RingTraversal
         return ret;
     }
 
-    static public LinearRing2i PathsTraversal(MultiPolygon2i set1, MultiPolygon2i set2, int startSet, int startPath, Vector2Int node, IPointCache cache, DebugReport report, ToVisitCache toVisit)
+    static public Dictionary<Vector2Int, List<Vector3Int>> GetConnectivities(MultiPolygon2i set1, MultiPolygon2i set2)
+    {
+        // list of tuple(polyId, pathId, nodeId) per point
+        Dictionary<Vector2Int, List<Vector3Int>> ret = new Dictionary<Vector2Int, List<Vector3Int>>();
+
+        var sets = new MultiPolygon2i[] {set1, set2};
+        for(int k=0; k<2; ++k)
+        {
+            for(int i=0; i<sets[k].Count(); ++i)
+            {
+                var ring = sets[k].Get(i);
+                for(int j=0; j<ring.Count(); ++j)
+                {
+                    var node = ring.At(j);
+                    if (!ret.ContainsKey(node))
+                        ret.Add(node, new List<Vector3Int>());
+                    var indexes = new Vector3Int(k, i, j);
+                    if (!ret[node].Contains(indexes))
+                        ret[node].Add(indexes);
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    static public int Index(List<Vector2Int> ls, Vector2Int p)
+    {
+        for(int i=0; i<ls.Count; ++i)
+        {
+            if (ls[i] == p)
+                return i;
+        }
+        return -1;
+    }
+
+    static public Vector2Int GetPoint(MultiPolygon2i[] sets, Vector3Int indexes, int oft = 0)
+    {
+        return sets[indexes[0]].Get(indexes[1]).At(indexes[2] + oft);
+    }
+
+    static public void PathsTraversal2(PointsInfo info, MultiPolygon2i set1, MultiPolygon2i set2, Vector3Int startIndexes, IPointCache cache, DebugReport report, ToVisitCache toVisit, bool outDir, MultiPolygon2i outResult, List<KeyValuePair<Vector2Int,Vector2Int>> visited)
     {
         MultiPolygon2i[] sets = new MultiPolygon2i[2] { set1, set2 };
 
-        int startSeg = sets[startSet].Get(startPath).nodes.IndexOf(node);
+        // [todo] should be global (computed only one time for all)
+        Dictionary<Vector2Int, List<Vector3Int>> connectivities = GetConnectivities(set1, set2);
 
-        int currentSet = startSet;
-        int currentPath = startPath;
-        int currentSeg = startSeg;
+        Vector3Int current = startIndexes;
 
-        LinearRing2i ret = new LinearRing2i();
+        List<Vector2Int> stack = new List<Vector2Int>();
 
-        int fuse = 1000;
+        var p0 = GetPoint(sets, current, -1);
+        var p = GetPoint(sets, current);
+
+        RingInt traversal = new RingInt();
+
+        int debugit = 0;
+        int debugadd = 0;
 
         do
         {
-            var p0 = sets[currentSet].Get(currentPath).At(currentSeg);
-            ret.Add(p0);
-            toVisit.Remove(currentSet, currentPath, p0);
-
-            if (cache.Contains(p0))
+            if (stack.Contains(p))
             {
-                SegmentPair pair = cache.GetPair(p0);
-                if (currentSet == 0)
-                {
-                    currentSet = 1;
-                    currentPath = pair.segRef2.x;
-                }
-                else if (currentSet == 1)
-                {
-                    currentSet = 0;
-                    currentPath = pair.segRef1.x;
-                }
-                currentSeg = sets[currentSet].Get(currentPath).nodes.IndexOf(p0);
+                // build ring and add it the the result
+                LinearRing2i ret = new LinearRing2i();
+                int firstIndex = Index(stack, p);
+                for(int i=firstIndex; i<stack.Count; ++i)
+                    ret.Add(stack[i]);
+
+                // stack pop
+                for(int i=1; i<ret.Count(); ++i)
+                    stack.RemoveAt(stack.Count-1);
+                
+                ret.ComputeOrientation();
+                debugadd++;
+                // Debug.Log("add ring size = " + ret.Count() + " at it " + debugit);
+
+                if (ret.Count() > 2)
+                    outResult.Add(new LinearRing2i(ret));
+
+                // Debug.Log("stack size after adding : " + stack.Count);
+            }
+            else
+            {
+                toVisit.RemoveAll(p);
+                stack.Add(p);
+                traversal.nodes.Add(info.Index(p));
             }
 
-            currentSeg++;
-            if (currentSeg == sets[currentSet].Get(currentPath).Count())
-                currentSeg = 0;
+            bool isCross = connectivities[p].Count > 1;
 
-            if (fuse-- == 0)
+            if (isCross)
             {
-                Debug.LogError("Infinite loop on path traversal");
-                report.bug = true;
+                // compute angles for all potential next nodes
+                List<float> angles = new List<float>();
+                for(int i=0; i<connectivities[p].Count; ++i)
+                {
+                    var indexes = connectivities[p][i];
+                    var p1 = GetPoint(sets, indexes, 1);
+                    angles.Add(VecIntOperation.CurveAngle(p0, p, p1));
+                }
+
+                // find the best next node considering the orientation (out == Union == min, in == Intersection == max)
+                int index = -1;
+                for(int a=0; a<angles.Count; ++a)
+                {
+                    var indexes = connectivities[p][a];
+                    var panext = GetPoint(sets, indexes, 1);
+                    bool alreadyVisited2 = visited.Contains(new KeyValuePair<Vector2Int, Vector2Int>(p, panext));
+                    if (!alreadyVisited2 && panext != p0)
+                    {
+                        if (index == -1) index = a;
+                        else if ((outDir && angles[a] < angles[index]) || (!outDir && angles[a] > angles[index]))
+                            index = a;
+                    }
+                }
+
+                if (index == -1)
+                {
+                    // Debug.Log("break on " + p + " at it " + debugit + "(added " + debugadd + ")");
+                    break;
+                }
+
+                // update state
+                current = connectivities[p][index];
+            }
+
+            current[2] = sets[current[0]].Get(current[1]).LoopIdx(current[2]+1);
+
+            p0 = p;
+            p = GetPoint(sets, current);
+
+            bool alreadyVisited = visited.Contains(new KeyValuePair<Vector2Int, Vector2Int>(p0, p));
+            if (alreadyVisited)
+                break;
+            
+            visited.Add(new KeyValuePair<Vector2Int, Vector2Int>(p0, p));
+
+            debugit++;
+
+            if (debugit > 1000)
+            {
+                Debug.Log("break infinite loop");
                 break;
             }
         }
-        while (!(currentSet == startSet && currentPath == startPath && currentSeg == startSeg));
-
-        report.traversals.Add(new LinearRing2i(ret));
-        return ret;
+        while (stack.Count > 0);
+        
+        report.traversals.Add(traversal);
     }
 
     static public ToVisitCache CreateToVisitCache(MultiPolygon2i set1, MultiPolygon2i set2)
@@ -160,14 +352,14 @@ public class RingTraversal
         for (int pathIdx = 0; pathIdx < set1.Count(); pathIdx++)
         {
             LinearRing2i path = set1.Get(pathIdx);
-            foreach(var n in path.nodes)
-                toVisit.AddPointToVisit(0, pathIdx, n);
+            for(int n = 0; n < path.nodes.Count; ++n)
+                toVisit.AddPointToVisit(0, pathIdx, n, path.nodes[n]);
         }
         for (int pathIdx = 0; pathIdx < set2.Count(); pathIdx++)
         {
             LinearRing2i path = set2.Get(pathIdx);
-            foreach(var n in path.nodes)
-                toVisit.AddPointToVisit(1, pathIdx, n);
+            for(int n = 0; n < path.nodes.Count; ++n)
+                toVisit.AddPointToVisit(1, pathIdx, n, path.nodes[n]);
         }
         return toVisit;
     }

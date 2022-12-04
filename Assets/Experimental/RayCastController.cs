@@ -12,4 +12,5 @@ public class RayCastController : MonoBehaviour
     public int ilines = 0;
     public int ipoints = 0;
     public VecIntOperation.Result result = VecIntOperation.Result.Undefined;
+    public bool autoRay = false;
 }

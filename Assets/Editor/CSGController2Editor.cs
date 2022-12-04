@@ -6,6 +6,8 @@ using UnityEditor;
 [CustomEditor(typeof(CSGController2))]
 public class CSGController2Editor : Editor
 {
+    List<int> nodeLabels = new List<int>();
+
     private void OnSceneGUI()
     {
         CSGController2 csg = target as CSGController2;
@@ -17,15 +19,17 @@ public class CSGController2Editor : Editor
             foreach (var path in csg.GetInputPaths())
                 DrawPolyline(path.points, Color.white * 0.3f);
                 
-            var polyline = Test(paths[0], paths[1], csg.GetOperation());
+            var polyline = Test(paths, csg.GetOperation());
+
+            nodeLabels.Clear();
             for(int i=0; i<polyline.Count(); ++i)
             {
                 var line = polyline.Get(i);
                 // line.ComputeOrientation();
                 if (line.IsCCW())
-                    DrawPolyline(line.nodes, Color.blue);
+                    DrawPolyline(line.nodes, Color.blue, csg.report.indexedResult[i]);
                 else
-                    DrawPolyline(line.nodes, Color.red);
+                    DrawPolyline(line.nodes, Color.red, csg.report.indexedResult[i]);
             }
         }
         else
@@ -59,17 +63,22 @@ public class CSGController2Editor : Editor
     }
 
 
-    private void DrawPolyline(List<Vector2Int> points, Color color)
+    private void DrawPolyline(List<Vector2Int> points, Color color, RingInt ids)
     {
         if (points.Count < 3) return;
 
         Vector3 last = (Vector2)points[points.Count - 1] / CSGController2.Unit;
         DrawDot(last, 0.02f, color);
 
-        foreach (var p in points)
+        for(int i=0; i<points.Count; ++i)
         {
-            Vector3 curr = (Vector2)p / CSGController2.Unit;
+            Vector3 curr = (Vector2)points[i] / CSGController2.Unit;
             DrawDot(curr, 0.02f, color);
+            if (ids != null && !nodeLabels.Contains(ids.nodes[i]))
+            {
+                Handles.Label(curr, "node #" + ids.nodes[i]);
+                nodeLabels.Add(ids.nodes[i]);
+            }
             Handles.color = color;
             Handles.DrawLine(last, curr);
             last = curr;
@@ -113,5 +122,35 @@ public class CSGController2Editor : Editor
         //if (report.bug && (csg.report == null || csg.report.bug == false))
             csg.report = report;
         return ret;
+    }
+
+    
+    private MultiPolygon2i Test(List<CSGController2.PolygonPath> paths, PolygonOperation.OperationType type)
+    {
+        if (paths.Count == 0)
+            return new MultiPolygon2i();;
+
+        MultiPolygon2i converged = Convert(paths[0]);
+        for(int i=1; i<paths.Count; ++i)
+        {
+            MultiPolygon2i other = Convert(paths[i]);
+
+            CSGOperation operation = new CSGOperation();
+
+            if (type == PolygonOperation.OperationType.Union)
+                converged = operation.Union2(converged, other);
+            else if (type == PolygonOperation.OperationType.Intersection)
+                converged = operation.Intersection2(converged, other);
+            else if (type == PolygonOperation.OperationType.Difference)
+                converged = operation.Substraction2(converged, other);
+            else if (type == PolygonOperation.OperationType.Exclusion)
+                converged = operation.Exclusion2(converged, other);
+
+            CSGController2 csg = target as CSGController2;
+            var report = operation.GetLastReport();
+            //if (report.bug && (csg.report == null || csg.report.bug == false))
+                csg.report = report;
+        }
+        return converged;
     }
 }

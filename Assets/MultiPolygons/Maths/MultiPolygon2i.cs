@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class MultiPolygon2i : MultiPolygon<Vector2Int>
 {
     public bool Composes(Vector2Int node)

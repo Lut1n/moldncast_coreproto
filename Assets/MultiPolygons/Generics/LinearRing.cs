@@ -19,6 +19,7 @@ public enum Side
     Edge
 }
 
+[System.Serializable]
 public class LinearRing<T>
 {
     public delegate void SegmentHandler(T a, T b);
@@ -40,6 +41,14 @@ public class LinearRing<T>
     
     public LinearRing(LinearRing<T> other) : this(other.nodes, other.orientation)
     {
+    }
+
+    public int LoopIdx(int i)
+    {
+        int c = nodes.Count;
+        while (i < 0) i += c;
+        while (i >= c) i -= c;
+        return i;
     }
     
     public bool IsCCW()

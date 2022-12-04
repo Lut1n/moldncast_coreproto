@@ -6,13 +6,13 @@ public class MultiPolygon2iOperation
 {
     static public Side GetSide(LinearRing2i path, Vector2Int p)
     {
-        var ray = RayCast(path, p);
-        if (ray == -1)
-            return Side.Edge;
-        else if (ray % 2 == 0)
-            return Side.Out;
-        else
-            return Side.In;
+        if (path.nodes.Contains(p)) return Side.Edge;
+
+        VecIntOperation.PolygonRayCastInfo info = new VecIntOperation.PolygonRayCastInfo();
+        Vector2Int ext = VecIntOperation.OutsidePoint(path.nodes, p);
+        var result = VecIntOperation.PolygonPointSide(ext, p, path.nodes, ref info);
+
+        return result == VecIntOperation.Result.Outside ? Side.Out : Side.In;
     }
     
     static public Vector2Int GetInsidePoint(LinearRing2i path)
@@ -131,94 +131,23 @@ public class MultiPolygon2iOperation
         return ipoints.Count % 2 == 0 ? Side.Out : Side.In;
     }
 
-    static public int RayCast(LinearRing2i path, Vector2Int o, Vector2Int node)
+    static public Vector2Int GetOutsidePointForRayCast(MultiPolygon2i path, Vector2Int refp)
     {
-        if (path.nodes.Contains(node))
-            return -1;
+        List<Vector2Int> outPoints = new List<Vector2Int>();
+        path.ForEachBoundary(p => outPoints.Add(VecIntOperation.OutsidePoint(p.nodes, refp)) );
 
-        Vector2 ignored = new Vector2();
-
-        int ic = 0;
-        path.ForEachSegment((p1, p2) => {
-            if (GeometryMath.SegToSeg(o, node, p1, p2, ref ignored) == ISeg.Yes)
-                ic++;
-        });
-        return ic;
-    }
-
-    static public int RayCast(LinearRing2i path, Vector2Int node)
-    {
-        // Vector2 ext = Bounds().min - new Vector2(-7.49215f, -3.345612f);
-        Vector2Int ext = GetOutsidePointForRayCast(path, node.x);
-        return RayCast(path, ext, node);
-    }
-
-    static public Vector2Int GetOutsidePointForRayCast(LinearRing2i path, float xref)
-    {
-        float x = xref;
-        bool ok = true;
-
-        int tryCount = 10;
-        do
-        {
-            ok = true;
-            foreach(var n in path.nodes)
-            {
-                if (Mathf.Abs(n.x - x) < GeometryMath.Epsilon)
-                {
-                    x += 0.01f;
-                    ok = false;
-                }
-            }
-            if (tryCount-- == 0)
-            {
-                Debug.LogWarning("Path: Failed to find a good outside point");
-                break;
-            }
-        }
-        while (!ok);
-
-        return new Vector2Int((int)x, (int)(Bounds(path).min.y) - 5);
-    }
-
-    static public Vector2 GetOutsidePointForRayCast(MultiPolygon2i path, float xref)
-    {
-        float x = xref;
-        bool ok = true;
-
-        int tryCount = 10;
-        do
-        {
-            ok = true;
-            path.ForEachBoundary(p =>
-            {
-                foreach(var n in p.nodes)
-                {
-                    if (Mathf.Abs(n.x - x) < GeometryMath.Epsilon)
-                    {
-                        x += 0.01f;
-                        ok = false;
-                    }
-                }
-            });
-            if (tryCount-- == 0)
-            {
-                Debug.LogWarning("Polygon: Failed to find a good outside point");
-                break;
-            }
-        }
-        while (!ok);
-
-        return new Vector2(x, Bounds(path).min.y - 5.0f);
+        Vector2Int outPoint = outPoints[0];
+        foreach(var p in outPoints) outPoint = Vector2Int.Min(outPoint, p);
+        return outPoint;
     }
 
     static public List<KeyValuePair<Vector2, LinearRing2i>> RayCastOnPaths(MultiPolygon2i MultiPolygon2i, Vector2Int node)
     {
         List<KeyValuePair<Vector2, LinearRing2i>> ret = new List<KeyValuePair<Vector2, LinearRing2i>>();
 
-        // Vector2 ext = Bounds().min - new Vector2(-7.49215f, -3.345612f);
-        Vector2 ext = GetOutsidePointForRayCast(MultiPolygon2i, node.x);
-        Vector2 ipt = new Vector2();
+        Vector2Int ext = GetOutsidePointForRayCast(MultiPolygon2i, node);
+
+        VecIntOperation.PolygonRayCastInfo info = new VecIntOperation.PolygonRayCastInfo();
 
         foreach (var path in MultiPolygon2i.boundaries)
         {
@@ -228,10 +157,10 @@ public class MultiPolygon2iOperation
                 continue;
             }
 
-            path.ForEachSegment((p1, p2) => {
-                if (GeometryMath.SegToSeg(ext, node, p1, p2, ref ipt) == ISeg.Yes)
-                    ret.Add(new KeyValuePair<Vector2, LinearRing2i>(ipt, (LinearRing2i)path));
-            });
+            foreach(var ipt in VecIntOperation.PolygonRayCastExt( ext, node, path.nodes, ref info))
+            {
+                ret.Add(new KeyValuePair<Vector2, LinearRing2i>(ipt, (LinearRing2i)path));
+            }
         }
 
         ret.Sort((a, b) => {

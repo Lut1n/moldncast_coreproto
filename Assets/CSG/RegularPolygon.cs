@@ -9,12 +9,12 @@ public class RegularPolygon : MonoBehaviour
     public float size = 1.0f;
     public float rotation = 0.0f;
 
-    public PolygonPath GetPoints(bool scaled = false)
+    public CSGController2.PolygonPath GetPoints(bool scaled = false)
     {
         float a = rotation;
         float step = Mathf.PI * 2.0f / sideCount;
 
-        PolygonPath ret = new PolygonPath();
+        CSGController2.PolygonPath ret = new CSGController2.PolygonPath();
         for(int i=0; i<sideCount; ++i)
         {
             Vector2 pt = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * size;

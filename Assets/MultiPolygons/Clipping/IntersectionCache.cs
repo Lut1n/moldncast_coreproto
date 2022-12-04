@@ -11,6 +11,11 @@ public class SegmentPair
     public SegmentPair()
     {
     }
+    public SegmentPair(Vector2Int indexes1, Vector2Int indexes2)
+    {
+        segRef1 = indexes1;
+        segRef2 = indexes2;
+    }
     public SegmentPair(int p1, int s1, int p2, int s2)
     {
         segRef1 = new Vector2Int(p1, s1);
@@ -43,7 +48,7 @@ public class IPointCache
     {
         List<Vector2Int> points = new List<Vector2Int>();
         foreach (var s in ipoints2)
-            points.Add(s.Value);
+            if (!points.Contains(s.Value)) points.Add(s.Value);
         return points;
     }
 
@@ -99,5 +104,89 @@ public class IPointCache
                 ret.Add(item.Value);
         }
         return ret;
+    }
+}
+
+[System.Serializable]
+public class PointInfo
+{
+    public Vector2Int value;
+    public Vector2Int indexes1 = new Vector2Int(-1,-1); // path and node indexes on polygon 1
+    public Vector2Int indexes2 = new Vector2Int(-1,-1); // path and node indexes on polygon 2
+    public List<int> inRings = new List<int>();
+    public List<int> outRings = new List<int>();
+    public List<int> edgeRings = new List<int>();
+
+    public PointInfo(Vector2Int value)
+    {
+        this.value = value;
+    }
+
+    public void Update(int polygonId, int pathId, int nodeId)
+    {
+        if (polygonId == 0)
+            this.indexes1 = new Vector2Int(pathId, nodeId);
+        else
+            this.indexes2 = new Vector2Int(pathId, nodeId);
+    }
+}
+
+[System.Serializable]
+public class PointsInfo
+{
+    // give indexes and side of all points for a polygon
+    public List<PointInfo> infos = new List<PointInfo>();
+
+    // give polygon id and ring indexes
+    public List<Vector2Int> rings = new List<Vector2Int>();
+
+    public void Reset()
+    {
+        infos = new List<PointInfo>();
+    }
+    
+    public void Add(Vector2Int p, int polygonId, int pathId, int nodeId)
+    {
+        if (Index(p) == -1) infos.Add(new PointInfo(p));
+        Get(p).Update(polygonId, pathId, nodeId);
+    }
+
+    public void AddRing(int polygonId, int pathId)
+    {
+        var indexes = new Vector2Int(polygonId, pathId);
+        if (RingIndex(indexes) == -1) rings.Add(indexes);
+    }
+    
+    public int RingIndex(Vector2Int indexes)
+    {
+        return rings.IndexOf(indexes);
+    }
+
+    public int Index(Vector2Int p)
+    {
+        for(int i=0; i<infos.Count; ++i)
+        {
+            if (infos[i].value == p)
+                return i;
+        }
+        return -1;
+    }
+
+    public PointInfo Get(int i)
+    {
+        return infos[i];
+    }
+
+    public PointInfo Get(Vector2Int p)
+    {
+        int id = Index(p);
+        Debug.Assert(id != -1);
+        return infos[id];
+    }
+    
+
+    public Vector2Int GetRing(int i)
+    {
+        return rings[i];
     }
 }
