@@ -136,26 +136,7 @@ public class VecIntOperation
         int iCount = 0;
 
         outInfo.Reset();
-        // [TODO] need to try something else for the case of colinear segments with ray
-
-
-        // List<int> iPointIdx = new List<int>();
-// 
-        // // find points on the ray
-        // Vector2Int last = polygon[polygon.Count - 1];
-        // for(int i=0; i<polygon.Count; ++i)
-        // {
-        //     var curr = polygon[i];
-        //     float ignored = 0.0f;
-        //     if (ComputePointToLine(curr, o, p, 0.5f, 0.5f, ref ignored) == Result.OnTheLine)
-        //     {
-        //         outInfo.intersectPoints.Add(curr);
-        //         iPointIdx.Add(i);
-        //     }
-        //     last = curr;
-        // }
-        // iCount += TanIntersect(polygon, iPointIdx, o, p);
-
+        
         // find intersected segments
         int j = polygon.Count - 1;
         Vector2Int last = polygon[j];
@@ -163,7 +144,6 @@ public class VecIntOperation
         {
             var curr = polygon[i];
             // exclude segments with point on ray
-            // if (!iPointIdx.Contains(i) && !iPointIdx.Contains(j))
             if (curr.y == o.y && curr.x >= o.x && curr.x <= p.x)
             {
                 outInfo.intersectPoints.Add(curr);
@@ -181,7 +161,7 @@ public class VecIntOperation
             else
             {
                 Vector2Int ipt = new Vector2Int();
-                var iRes = GeometryMath.SegToSeg(last, curr, o, p, ref ipt);
+                var iRes = GeometryMath.SegToSegi(last, curr, o, p, ref ipt);
                 if (iRes == ISeg.Yes)
                 {
                     outInfo.intersectLines.Add(new Line(last, curr));
@@ -193,6 +173,175 @@ public class VecIntOperation
         }
 
         return iCount;
+    }
+
+    static public int SegmentWindingNumber(Vector2Int s1, Vector2Int s2)
+    {
+        int w2 = 0;
+
+        if (s1.y*s2.y < 0) // ViVi1 crosses the x-axis
+        {
+            float R = s1.x + s1.y * (s2.x - s1.x ) / (float)( s1.y - s2.y ); // R is the x-coordinate of the intersection of ViVi1 and the x-axis
+            // if R > 0 -> positive x-axis, else negative x-axis
+
+            // Debug.Log("R = " + R + "; s1.y = " + s1.y);
+
+            if(s1.y * R < 0.0f)
+                // crossing from below of positive x-axis
+                // or above negative x-axis
+                w2 = 2;
+            else // crossing from above of positive x-axis
+            // or below negative x-axis
+                w2 = -2;
+        }
+        else if (s1.y == 0 && s2.y == 0) // points are on the boundary
+        {
+            // unchanged
+            w2 = 0;
+        }
+        else if(s1.y == 0) // V1 on x-axis
+        {
+            if(s2.y * s1.x > 0)
+                // Vi is on positive x-axis and Vi1 above,
+                // or Vi is on negative x-axis and Vi1 below
+                w2 = 1;
+            else
+                // Vi is on negative x-axis and Vi1 above,
+                // or Vi is on positive x-axis and Vi1 below
+                w2 = -1;
+        }
+        else if(s2.y == 0) // Vi1 is on x-axis
+        {
+            if(s1.y * s2.x < 0)
+                // Vi1 is on negative x-axis and Vi above,
+                // or Vi1 is on positive x-axis and Vi below
+                w2 = 1;
+            else
+                // Vi1 is on positive x-axis and Vi above,
+                // or Vi1 is on negative x-axis and Vi below
+                w2 = -1;
+        }
+
+        return w2;
+    }
+
+    static public int PolygonWindingNumber(Vector2Int p, List<Vector2Int> polygon)
+    {
+        int w2 = 0;
+        // int it = 0;
+
+        Vector2Int last = polygon[polygon.Count - 1];
+        foreach(var curr in polygon)
+        {
+            int r2 = SegmentWindingNumber(last - p, curr - p);
+            // Debug.Log("it " + it + " r=" + r2);
+            w2 += r2;
+            last = curr;
+            // it++;
+        }
+        
+        return w2 / 2;
+    }
+
+    
+    static public List<Vector2> PolygonRayCastExt2(Vector2Int o, Vector2Int p, List<Vector2Int> polygon, ref PolygonRayCastInfo outInfo)
+    {
+        List<Vector2> ret = new List<Vector2>();
+
+        outInfo.Reset();
+        
+        // find intersected segments
+        int j = polygon.Count - 1;
+        Vector2Int last = polygon[j];
+        for(int i=0; i<polygon.Count; ++i)
+        {
+            var curr = polygon[i];
+            // exclude segments with point on ray
+            if (curr.y == o.y && curr.x >= o.x && curr.x <= p.x)
+            {
+                outInfo.intersectPoints.Add(curr);
+
+                if (last.y == o.y)
+                {
+                    // ignore
+                }
+                else
+                {
+                    outInfo.intersectLines.Add(new Line(last, curr));
+                    ret.Add(curr);
+                }
+            }
+            else
+            {
+                Vector2 ipt = new Vector2();
+                var iRes = GeometryMath.SegToSegf(last, curr, o, p, ref ipt);
+                if (iRes == ISeg.Yes)
+                {
+                    outInfo.intersectLines.Add(new Line(last, curr));
+                    ret.Add(ipt);
+                }
+            }
+            j = i;
+            last = curr;
+        }
+
+        return ret;
+    }
+
+    static public List<Vector2Int> PolygonRayCastExt2i(Vector2Int o, Vector2Int p, List<Vector2Int> polygon, ref PolygonRayCastInfo outInfo)
+    {
+        List<Vector2Int> ret = new List<Vector2Int>();
+
+        outInfo.Reset();
+        
+        // find intersected segments
+        int j = polygon.Count - 1;
+        Vector2Int last = polygon[j];
+        for(int i=0; i<polygon.Count; ++i)
+        {
+            var curr = polygon[i];
+            // I should:
+            // - exclude segments with 2 points on p.y
+            // - detect curr and last on ray
+
+            // - if curr on ray:
+            //    - if last.y < curr.y : N -= 1
+            //    - if last.y > curr.y : N += 1
+            // - else if last on ray:
+            //    - if curr.y > last.y : N += 1
+            //    - if curr.y < last.y : N -= 1
+            //
+            // @see point_in_polygon.pdf
+
+            if (curr.y == o.y && curr.x >= o.x && curr.x <= p.x)
+            {
+                outInfo.intersectPoints.Add(curr);
+
+                if (last.y == o.y)
+                {
+                    // ignore
+                }
+                else
+                {
+                    outInfo.intersectLines.Add(new Line(last, curr));
+                    ret.Add(curr);
+                }
+            }
+            else
+            {
+                Vector2Int ipt = new Vector2Int();
+                var iRes = GeometryMath.SegToSegi(last, curr, o, p, ref ipt);
+                if (iRes == ISeg.Yes)
+                {
+                    outInfo.intersectLines.Add(new Line(last, curr));
+                    ret.Add(ipt);
+                }
+            }
+            j = i;
+            last = curr;
+        }
+
+        return ret;
     }
 
     static public List<Vector2Int> PolygonRayCastExt(Vector2Int o, Vector2Int p, List<Vector2Int> polygon, ref PolygonRayCastInfo outInfo)
@@ -230,7 +379,7 @@ public class VecIntOperation
             if (!iPointIdx.Contains(i) && !iPointIdx.Contains(j))
             {
                 Vector2Int ipt = new Vector2Int();
-                var iRes = GeometryMath.SegToSeg(last, curr, o, p, ref ipt);
+                var iRes = GeometryMath.SegToSegi(last, curr, o, p, ref ipt);
                 if (iRes == ISeg.Yes)
                 {
                     outInfo.intersectLines.Add(new Line(last, curr));
@@ -246,8 +395,10 @@ public class VecIntOperation
 
     static public Result PolygonPointSide(Vector2Int o, Vector2Int p, List<Vector2Int> polygon, ref PolygonRayCastInfo outInfo)
     {
-        int iCount = PolygonRayCast(o, p, polygon, ref outInfo);
-        return (iCount % 2) == 0 ? Result.Outside : Result.Inside;
+        outInfo.Reset();
+        int iCount = PolygonWindingNumber(p, polygon);
+        // Debug.Log("wn = " + iCount);
+        return iCount > 0 ? Result.Inside : Result.Outside;
     }
 
     static public void UpdateGroup(List<int> groups, int old , int newV)

@@ -407,64 +407,20 @@ MonoBehaviour:
   report:
     bug: 0
     intersectionPoints:
-    - {x: 19, y: 3}
-    - {x: 19, y: -3}
+    - {x: 18, y: 4}
+    - {x: 18, y: -4}
     originals:
-    - boundaries:
-      - nodes:
-        - {x: 20, y: 0}
-        - {x: 16, y: 12}
-        - {x: 6, y: 19}
-        - {x: -6, y: 19}
-        - {x: -16, y: 12}
-        - {x: -20, y: 0}
-        - {x: -19, y: -3}
-        - {x: -29, y: 2}
-        - {x: -29, y: -15}
-        - {x: -17, y: -8}
-        - {x: -16, y: -12}
-        - {x: -6, y: -19}
-        - {x: 6, y: -19}
-        - {x: 16, y: -12}
-        orientation: 1
-    - boundaries:
-      - nodes:
-        - {x: 26, y: 0}
-        - {x: 21, y: 5}
-        - {x: 16, y: 0}
-        - {x: 21, y: -5}
-        orientation: 1
+    - rings:
+      - nodes: 0000000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d000000
+    - rings:
+      - nodes: 0f000000100000001100000012000000
     subdivideds:
-    - boundaries:
-      - nodes:
-        - {x: 20, y: 0}
-        - {x: 19, y: 3}
-        - {x: 16, y: 12}
-        - {x: 6, y: 19}
-        - {x: -6, y: 19}
-        - {x: -16, y: 12}
-        - {x: -20, y: 0}
-        - {x: -19, y: -3}
-        - {x: -29, y: 2}
-        - {x: -29, y: -15}
-        - {x: -17, y: -8}
-        - {x: -16, y: -12}
-        - {x: -6, y: -19}
-        - {x: 6, y: -19}
-        - {x: 16, y: -12}
-        - {x: 19, y: -3}
-        orientation: 1
-    - boundaries:
-      - nodes:
-        - {x: 26, y: 0}
-        - {x: 21, y: 5}
-        - {x: 19, y: 3}
-        - {x: 16, y: 0}
-        - {x: 19, y: -3}
-        - {x: 21, y: -5}
-        orientation: 1
+    - rings:
+      - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e000000
+    - rings:
+      - nodes: 0f0000001000000001000000110000000e00000012000000
     traversals:
-    - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000130000001000000011000000120000000f000000
+    - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e000000120000000f0000001000000001000000110000000e000000
     pointInfos:
     - value: {x: 20, y: 0}
       indexes1: {x: 0, y: 0}
@@ -472,7 +428,7 @@ MonoBehaviour:
       inRings: 01000000
       outRings: 
       edgeRings: 00000000
-    - value: {x: 19, y: 3}
+    - value: {x: 18, y: 4}
       indexes1: {x: 0, y: 1}
       indexes2: {x: 0, y: 2}
       inRings: 
@@ -502,96 +458,90 @@ MonoBehaviour:
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -20, y: 0}
+    - value: {x: -19, y: 4}
       indexes1: {x: 0, y: 6}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -19, y: -3}
+    - value: {x: -29, y: 10}
       indexes1: {x: 0, y: 7}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -29, y: 2}
+    - value: {x: -29, y: -7}
       indexes1: {x: 0, y: 8}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -29, y: -15}
+    - value: {x: -19, y: -2}
       indexes1: {x: 0, y: 9}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -17, y: -8}
+    - value: {x: -16, y: -12}
       indexes1: {x: 0, y: 10}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -16, y: -12}
+    - value: {x: -6, y: -19}
       indexes1: {x: 0, y: 11}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -6, y: -19}
+    - value: {x: 6, y: -19}
       indexes1: {x: 0, y: 12}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: 6, y: -19}
+    - value: {x: 16, y: -12}
       indexes1: {x: 0, y: 13}
       indexes2: {x: -1, y: -1}
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: 16, y: -12}
+    - value: {x: 18, y: -4}
       indexes1: {x: 0, y: 14}
-      indexes2: {x: -1, y: -1}
-      inRings: 
-      outRings: 01000000
-      edgeRings: 00000000
-    - value: {x: 19, y: -3}
-      indexes1: {x: 0, y: 15}
       indexes2: {x: 0, y: 4}
       inRings: 
       outRings: 
       edgeRings: 0000000001000000
-    - value: {x: 26, y: 0}
+    - value: {x: 24, y: 0}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 0}
       inRings: 
       outRings: 00000000
       edgeRings: 01000000
-    - value: {x: 21, y: 5}
+    - value: {x: 19, y: 5}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 1}
       inRings: 
       outRings: 00000000
       edgeRings: 01000000
-    - value: {x: 16, y: 0}
+    - value: {x: 14, y: 0}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 3}
       inRings: 00000000
       outRings: 
       edgeRings: 01000000
-    - value: {x: 21, y: -5}
+    - value: {x: 19, y: -5}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 5}
       inRings: 
       outRings: 00000000
       edgeRings: 01000000
     indexed1:
-    - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000
+    - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e000000
     indexed2:
-    - nodes: 100000001100000001000000120000000f00000013000000
+    - nodes: 0f0000001000000001000000110000000e00000012000000
     indexedResult:
-    - nodes: 0100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000130000001000000011000000
+    - nodes: 0100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e000000120000000f00000010000000
 --- !u!4 &1028941745
 Transform:
   m_ObjectHideFlags: 0
@@ -672,55 +622,21 @@ MonoBehaviour:
   report:
     bug: 0
     intersectionPoints:
-    - {x: -19, y: -3}
-    - {x: -17, y: -8}
+    - {x: -18, y: 5}
+    - {x: -18, y: -5}
     originals:
-    - boundaries:
-      - nodes:
-        - {x: 20, y: 0}
-        - {x: 16, y: 12}
-        - {x: 6, y: 19}
-        - {x: -6, y: 19}
-        - {x: -16, y: 12}
-        - {x: -20, y: 0}
-        - {x: -16, y: -12}
-        - {x: -6, y: -19}
-        - {x: 6, y: -19}
-        - {x: 16, y: -12}
-        orientation: 1
-    - boundaries:
-      - nodes:
-        - {x: -14, y: -6}
-        - {x: -29, y: 2}
-        - {x: -29, y: -15}
-        orientation: 1
+    - rings:
+      - nodes: 00000000010000000200000003000000040000000600000008000000090000000a0000000b000000
+    - rings:
+      - nodes: 0c0000000d0000000e000000
     subdivideds:
-    - boundaries:
-      - nodes:
-        - {x: 20, y: 0}
-        - {x: 16, y: 12}
-        - {x: 6, y: 19}
-        - {x: -6, y: 19}
-        - {x: -16, y: 12}
-        - {x: -20, y: 0}
-        - {x: -19, y: -3}
-        - {x: -17, y: -8}
-        - {x: -16, y: -12}
-        - {x: -6, y: -19}
-        - {x: 6, y: -19}
-        - {x: 16, y: -12}
-        orientation: 1
-    - boundaries:
-      - nodes:
-        - {x: -14, y: -6}
-        - {x: -19, y: -3}
-        - {x: -29, y: 2}
-        - {x: -29, y: -15}
-        - {x: -17, y: -8}
-        orientation: 1
+    - rings:
+      - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000
+    - rings:
+      - nodes: 0c000000050000000d0000000e00000007000000
     traversals:
-    - nodes: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    - nodes: 000000000000000000000000
+    - nodes: 0000000001000000020000000300000004000000050000000d0000000e0000000700000008000000090000000a0000000b000000
+    - nodes: 06000000070000000c00000005000000
     pointInfos:
     - value: {x: 20, y: 0}
       indexes1: {x: 0, y: 0}
@@ -752,19 +668,19 @@ MonoBehaviour:
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -20, y: 0}
+    - value: {x: -18, y: 5}
       indexes1: {x: 0, y: 5}
-      indexes2: {x: -1, y: -1}
-      inRings: 
-      outRings: 01000000
-      edgeRings: 00000000
-    - value: {x: -19, y: -3}
-      indexes1: {x: 0, y: 6}
       indexes2: {x: 0, y: 1}
       inRings: 
       outRings: 
       edgeRings: 0000000001000000
-    - value: {x: -17, y: -8}
+    - value: {x: -20, y: 0}
+      indexes1: {x: 0, y: 6}
+      indexes2: {x: -1, y: -1}
+      inRings: 01000000
+      outRings: 
+      edgeRings: 00000000
+    - value: {x: -18, y: -5}
       indexes1: {x: 0, y: 7}
       indexes2: {x: 0, y: 4}
       inRings: 
@@ -794,19 +710,19 @@ MonoBehaviour:
       inRings: 
       outRings: 01000000
       edgeRings: 00000000
-    - value: {x: -14, y: -6}
+    - value: {x: -10, y: 0}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 0}
       inRings: 00000000
       outRings: 
       edgeRings: 01000000
-    - value: {x: -29, y: 2}
+    - value: {x: -25, y: 9}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 2}
       inRings: 
       outRings: 00000000
       edgeRings: 01000000
-    - value: {x: -29, y: -15}
+    - value: {x: -25, y: -9}
       indexes1: {x: -1, y: -1}
       indexes2: {x: 0, y: 3}
       inRings: 
@@ -815,9 +731,9 @@ MonoBehaviour:
     indexed1:
     - nodes: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000
     indexed2:
-    - nodes: 0c000000060000000d0000000e00000007000000
+    - nodes: 0c000000050000000d0000000e00000007000000
     indexedResult:
-    - nodes: 000000000100000002000000030000000400000005000000060000000d0000000e0000000700000008000000090000000a0000000b000000
+    - nodes: 0000000001000000020000000300000004000000050000000d0000000e0000000700000008000000090000000a0000000b000000
 --- !u!1 &1644894053
 GameObject:
   m_ObjectHideFlags: 0
@@ -844,7 +760,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1644894053}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.12, y: 0, z: 0}
+  m_LocalPosition: {x: 1.87, y: 0.01, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -914,7 +830,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2059570530}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.408, y: -0.623, z: 0}
+  m_LocalPosition: {x: -2, y: 0.014, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

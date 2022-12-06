@@ -6,6 +6,28 @@ using UnityEngine;
 public class RingInt
 {
     public List<int> nodes = new List<int>();
+
+    static public RingInt FromLRi2(PointsInfo infos, LinearRing2i lr)
+    {
+        RingInt ret = new RingInt();
+        for(int i = 0; i<lr.Count(); ++i)
+            ret.nodes.Add(infos.Index(lr.At(i)));
+        return ret;
+    }
+}
+
+[System.Serializable]
+public class RingIntSet
+{
+    public List<RingInt> rings = new List<RingInt>();
+
+    static public RingIntSet FromMPi2(PointsInfo infos, MultiPolygon2i mp)
+    {
+        RingIntSet set = new RingIntSet();
+        for(int i=0; i<mp.Count(); ++i)
+            set.rings.Add( RingInt.FromLRi2(infos, mp.Get(i)) );
+        return set;
+    }
 }
 
 public class CSGOperation
@@ -70,8 +92,6 @@ public class CSGOperation
         // normalize positions (fixed precision to 0.01)
         // polygons1.ForEachBoundary(p => p.ForEachIndex(i => p.Set(i, p.At(i))));
         // polygons2.ForEachBoundary(p => p.ForEachIndex(i => p.Set(i, p.At(i))));
-        report.originals.Add(polygons1);
-        report.originals.Add(polygons2);
 
         cache = RingTraversal.ComputeIPoints(polygons1, polygons2);
         report.intersectionPoints = new List<Vector2>();
@@ -81,11 +101,14 @@ public class CSGOperation
         // Debug.Log("cache size : " + cache.ipoints2.Count);
         subdivided1 = Validate(RingTraversal.SubdivideSegments(polygons1, cache, true));
         subdivided2 = Validate(RingTraversal.SubdivideSegments(polygons2, cache, false));
-        report.subdivideds.Add(subdivided1);
-        report.subdivideds.Add(subdivided2);
 
         info = RingTraversal.ComputeInfos(subdivided1, subdivided2);
         report.pointInfos = info.infos;
+        
+        report.originals.Add( RingIntSet.FromMPi2(info, polygons1) );
+        report.originals.Add( RingIntSet.FromMPi2(info, polygons2) );
+        report.subdivideds.Add( RingIntSet.FromMPi2(info, subdivided1) );
+        report.subdivideds.Add( RingIntSet.FromMPi2(info, subdivided2) );
 
         report.indexed1 = IndexedRingSet(subdivided1, info);
         report.indexed2 = IndexedRingSet(subdivided2, info);
@@ -158,7 +181,7 @@ public class CSGOperation
         // generate result
         int fuse = 100;
         MultiPolygon2i result = new MultiPolygon2i();
-        List<KeyValuePair<Vector2Int,Vector2Int>> visited = new List<KeyValuePair<Vector2Int,Vector2Int>>();
+        List<Segment> visited = new List<Segment>();
         while (!toVisit.Empty())
         {
             var next = toVisit.PickToVisit();
@@ -174,11 +197,14 @@ public class CSGOperation
 
         result = Validate(result);
 
+        int filterIt = 0;
         // filter paths depending on sideToFilrer
         RingTraversal.FilterPaths(result, path =>
         {
             Side sideSet1 = MultiPolygon2iOperation.GetSide(subdivided1, path);
             Side sideSet2 = MultiPolygon2iOperation.GetSide(subdivided2, path);
+            // Debug.Log("filter it " + filterIt + " sideSet1 = " + sideSet1 + " sideSet2 = " + sideSet2);
+            filterIt++;
             return sideSet1 == sideToFilter || sideSet2 == sideToFilter;
         });
 

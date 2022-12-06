@@ -2,6 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct Segment
+{
+    public Vector2Int p1;
+    public Vector2Int p2;
+
+    public Segment(Vector2Int p1, Vector2Int p2)
+    {
+        this.p1 = p1;
+        this.p2 = p2;
+    }
+}
+
 public class ToVisitCache
 {
     public struct Item
@@ -60,7 +72,7 @@ public class RingTraversal
         // (2) - if points are same. Returns Edge
         // (3) - if a point is on a line. Return Edge
 
-        var res = GeometryMath.SegToSeg(a1, a2, b1, b2, ref ipt);
+        var res = GeometryMath.SegToSegi(a1, a2, b1, b2, ref ipt);
         if (res == ISeg.No)
         {
             float ignored = 0.0f;
@@ -235,7 +247,14 @@ public class RingTraversal
         return sets[indexes[0]].Get(indexes[1]).At(indexes[2] + oft);
     }
 
-    static public void PathsTraversal2(PointsInfo info, MultiPolygon2i set1, MultiPolygon2i set2, Vector3Int startIndexes, IPointCache cache, DebugReport report, ToVisitCache toVisit, bool outDir, MultiPolygon2i outResult, List<KeyValuePair<Vector2Int,Vector2Int>> visited)
+    static public Vector3Int NextIndex(MultiPolygon2i[] sets, Vector3Int indexes)
+    {
+        var ret = indexes;
+        ret[2] = sets[ret[0]].Get(ret[1]).LoopIdx(ret[2] + 1);
+        return ret;
+    }
+
+    static public void PathsTraversal2(PointsInfo info, MultiPolygon2i set1, MultiPolygon2i set2, Vector3Int startIndexes, IPointCache cache, DebugReport report, ToVisitCache toVisit, bool outDir, MultiPolygon2i outResult, List<Segment> visited)
     {
         MultiPolygon2i[] sets = new MultiPolygon2i[2] { set1, set2 };
 
@@ -254,39 +273,11 @@ public class RingTraversal
         int debugit = 0;
         int debugadd = 0;
 
+        bool foundNext = true;
+
         do
         {
-            if (stack.Contains(p))
-            {
-                // build ring and add it the the result
-                LinearRing2i ret = new LinearRing2i();
-                int firstIndex = Index(stack, p);
-                for(int i=firstIndex; i<stack.Count; ++i)
-                    ret.Add(stack[i]);
-
-                // stack pop
-                for(int i=1; i<ret.Count(); ++i)
-                    stack.RemoveAt(stack.Count-1);
-                
-                ret.ComputeOrientation();
-                debugadd++;
-                // Debug.Log("add ring size = " + ret.Count() + " at it " + debugit);
-
-                if (ret.Count() > 2)
-                    outResult.Add(new LinearRing2i(ret));
-
-                // Debug.Log("stack size after adding : " + stack.Count);
-            }
-            else
-            {
-                toVisit.RemoveAll(p);
-                stack.Add(p);
-                traversal.nodes.Add(info.Index(p));
-            }
-
-            bool isCross = connectivities[p].Count > 1;
-
-            if (isCross)
+            if (connectivities[p].Count > 1)
             {
                 // compute angles for all potential next nodes
                 List<float> angles = new List<float>();
@@ -303,35 +294,63 @@ public class RingTraversal
                 {
                     var indexes = connectivities[p][a];
                     var panext = GetPoint(sets, indexes, 1);
-                    bool alreadyVisited2 = visited.Contains(new KeyValuePair<Vector2Int, Vector2Int>(p, panext));
+                    bool alreadyVisited2 = visited.Contains(new Segment(p, panext));
                     if (!alreadyVisited2 && panext != p0)
                     {
                         if (index == -1) index = a;
-                        else if ((outDir && angles[a] < angles[index]) || (!outDir && angles[a] > angles[index]))
+                        if ((outDir && angles[a] < angles[index]) || (!outDir && angles[a] > angles[index]))
                             index = a;
                     }
                 }
 
-                if (index == -1)
-                {
-                    // Debug.Log("break on " + p + " at it " + debugit + "(added " + debugadd + ")");
-                    break;
+                if (index != -1)
+                {    
+                    // update state
+                    current = connectivities[p][index];
                 }
-
-                // update state
-                current = connectivities[p][index];
             }
 
-            current[2] = sets[current[0]].Get(current[1]).LoopIdx(current[2]+1);
+            if (stack.Contains(p))
+            {
+                // Debug.Log("yep " + p + " at it " + debugit);
+                // build ring and add it the the result
+                LinearRing2i ret = new LinearRing2i();
+                int firstIndex = Index(stack, p);
+                for(int i=firstIndex; i<stack.Count; ++i)
+                    ret.Add(stack[i]);
 
-            p0 = p;
-            p = GetPoint(sets, current);
+                // stack pop
+                for(int i=0; i<ret.Count(); ++i)
+                    stack.RemoveAt(stack.Count-1);
+                
+                ret.ComputeOrientation();
+                debugadd++;
+                // Debug.Log("add ring size = " + ret.Count() + " at it " + debugit);
 
-            bool alreadyVisited = visited.Contains(new KeyValuePair<Vector2Int, Vector2Int>(p0, p));
-            if (alreadyVisited)
-                break;
-            
-            visited.Add(new KeyValuePair<Vector2Int, Vector2Int>(p0, p));
+                if (ret.Count() > 2)
+                    outResult.Add(new LinearRing2i(ret));
+
+                // Debug.Log("stack size after adding : " + stack.Count);
+            }
+
+            var nextIdx = NextIndex(sets, current);
+            var next = GetPoint(sets, nextIdx);
+
+            var seg = new Segment(p, next);
+            foundNext = !visited.Contains(seg);
+            if (foundNext)
+            {
+                // update state
+                stack.Add(p);
+                visited.Add(seg);
+                toVisit.RemoveAll(p);
+                traversal.nodes.Add(info.Index(p));
+
+                // advance
+                p0 = p;
+                p = next;
+                current = nextIdx;
+            }
 
             debugit++;
 
@@ -341,7 +360,7 @@ public class RingTraversal
                 break;
             }
         }
-        while (stack.Count > 0);
+        while (foundNext);
         
         report.traversals.Add(traversal);
     }

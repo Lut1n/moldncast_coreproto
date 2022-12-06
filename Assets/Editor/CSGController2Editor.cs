@@ -7,6 +7,7 @@ using UnityEditor;
 public class CSGController2Editor : Editor
 {
     List<int> nodeLabels = new List<int>();
+    List<int> nodeDots = new List<int>();
 
     private void OnSceneGUI()
     {
@@ -16,12 +17,14 @@ public class CSGController2Editor : Editor
 
         if (paths.Count >= 2)
         {
-            foreach (var path in csg.GetInputPaths())
-                DrawPolyline(path.points, Color.white * 0.3f);
                 
             var polyline = Test(paths, csg.GetOperation());
-
             nodeLabels.Clear();
+
+            var report = csg.report;
+            foreach(var set in report.subdivideds)
+                DrawRingIntSet(set, Color.white * 0.3f, report.pointInfos);
+
             for(int i=0; i<polyline.Count(); ++i)
             {
                 var line = polyline.Get(i);
@@ -36,6 +39,25 @@ public class CSGController2Editor : Editor
         {
             foreach (var path in paths)
                 DrawPolyline(path.points, Color.white);
+        }
+
+        DrawLabels();
+    }
+
+    private void DrawLabels()
+    {
+        CSGController2 csg = target as CSGController2;
+        var report = csg.report;
+        var infos = report.pointInfos;
+
+        for(int i=0; i<infos.Count; ++i)
+        {
+            if (!nodeLabels.Contains(i))
+            {
+                Vector3 pos = (Vector2)infos[i].value / CSGController2.Unit;
+                Handles.Label(pos, "node #" + i);
+                nodeLabels.Add(i);
+            }
         }
     }
 
@@ -59,6 +81,31 @@ public class CSGController2Editor : Editor
             Handles.color = color;
             Handles.DrawLine(last, curr);
             last = curr;
+        }
+    }
+    
+    private void DrawRingIntSet(RingIntSet set, Color color, List<PointInfo> infos)
+    {
+        for(int i=0; i<set.rings.Count; ++i)
+        {
+            var ring = set.rings[i];
+            if (ring.nodes.Count < 3) continue;
+
+            int lastId = ring.nodes[ring.nodes.Count - 1];
+            Vector2Int lastValue = infos[lastId].value;
+
+            Vector3 last = (Vector2)lastValue / CSGController2.Unit;
+            DrawDot(last, 0.02f, color);
+
+            foreach (var id in ring.nodes)
+            {
+                Vector2Int value = infos[id].value;
+                Vector3 curr = (Vector2)value / CSGController2.Unit;
+                DrawDot(curr, 0.02f, color);
+                Handles.color = color;
+                Handles.DrawLine(last, curr);
+                last = curr;
+            }
         }
     }
 

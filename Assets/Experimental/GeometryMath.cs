@@ -14,7 +14,7 @@ public class GeometryMath
     public static float Epsilon = 0.01f;
 
 
-    public static ISeg SegToSeg(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, ref Vector2 ipt)
+    public static ISeg SegToSegf(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, ref Vector2 ipt)
     {
         if (a1 == b1 || a1 == b2)
         {
@@ -56,9 +56,8 @@ public class GeometryMath
 
         return ISeg.No;
     }
-
     
-    public static ISeg SegToSeg(Vector2Int a1i, Vector2Int a2i, Vector2Int b1i, Vector2Int b2i, ref Vector2Int ipt)
+    public static ISeg SegToSegi(Vector2Int a1i, Vector2Int a2i, Vector2Int b1i, Vector2Int b2i, ref Vector2Int ipt)
     {
         Vector2 a1 = a1i;
         Vector2 a2 = a2i;
