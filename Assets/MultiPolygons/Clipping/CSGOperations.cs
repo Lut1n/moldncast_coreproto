@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum OperationType
+{
+    Union,
+    Intersection,
+    Difference,
+    Exclusion
+}
+
 [System.Serializable]
 public class RingInt
 {
@@ -203,7 +211,6 @@ public class CSGOperation
         {
             Side sideSet1 = MultiPolygon2iOperation.GetSide(subdivided1, path);
             Side sideSet2 = MultiPolygon2iOperation.GetSide(subdivided2, path);
-            // Debug.Log("filter it " + filterIt + " sideSet1 = " + sideSet1 + " sideSet2 = " + sideSet2);
             filterIt++;
             return sideSet1 == sideToFilter || sideSet2 == sideToFilter;
         });

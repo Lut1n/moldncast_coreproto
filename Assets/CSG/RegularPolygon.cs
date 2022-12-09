@@ -9,19 +9,19 @@ public class RegularPolygon : MonoBehaviour
     public float size = 1.0f;
     public float rotation = 0.0f;
 
-    public CSGController2.PolygonPath GetPoints(bool scaled = false)
+    public LinearRing2i GetPoints()
     {
         float a = rotation;
         float step = Mathf.PI * 2.0f / sideCount;
 
-        CSGController2.PolygonPath ret = new CSGController2.PolygonPath();
+        LinearRing2i ret = new LinearRing2i();
         for(int i=0; i<sideCount; ++i)
         {
             Vector2 pt = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * size;
-            // pt = scaled ? pt * CSGController2.Unit : pt;
-            ret.Add(transform.TransformPoint(pt));
+            ret.Add(Vector2Int.RoundToInt(transform.TransformPoint(pt) * CSGController2.Unit));
             a += step;
         }
+        ret.ComputeOrientation();
         return ret;
     }
 }

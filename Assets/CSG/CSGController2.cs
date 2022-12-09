@@ -4,27 +4,7 @@ using UnityEngine;
 
 public class CSGController2 : MonoBehaviour
 {
-    static public int Unit = 10;
-
-    public class PolygonPath
-    {
-        public List<Vector2> points;
-
-        public PolygonPath()
-        {
-            points = new List<Vector2>();
-        }
-
-        public PolygonPath(List<Vector2> path)
-        {
-            points = path;
-        }
-
-        public void Add(Vector2 point)
-        {
-            points.Add(point);
-        }
-    }
+    static public int Unit = 1000;
 
     public DebugReport report;
 
@@ -38,46 +18,63 @@ public class CSGController2 : MonoBehaviour
         }
         return ret;
     }
-    
-    public List<CSGController2.PolygonPath> GetInputPaths()
+
+    private MultiPolygon2i ComputePath()
     {
-        List<CSGController2.PolygonPath> ret = new List<CSGController2.PolygonPath>();
+        MultiPolygon2i ret = new MultiPolygon2i();
+        RegularPolygon poly = GetComponent<RegularPolygon>();
+        var operands = GetCSGChildren();
+        if (poly)
+        {
+            ret.Add(poly.GetPoints());
+        }
+        else if (operands.Count >= 2)
+        {
+            MultiPolygon2i set1 = operands[0].ComputePath();
+            MultiPolygon2i set2 = operands[1].ComputePath();
+            
+            CSGOperation operation = new CSGOperation();
+            var type = GetOperation();
+
+            if (type == OperationType.Union)
+                ret = operation.Union2(set1, set2);
+            else if (type == OperationType.Intersection)
+                ret = operation.Intersection2(set1, set2);
+            else if (type == OperationType.Difference)
+                ret = operation.Substraction2(set1, set2);
+            else if (type == OperationType.Exclusion)
+                ret = operation.Exclusion2(set1, set2);
+            
+            report = operation.GetLastReport();
+        }
+        return ret;
+    }
+
+    public List<MultiPolygon2i> GetEditorPaths()
+    {
+        List<MultiPolygon2i> ret = new List<MultiPolygon2i>();
         RegularPolygon poly = GetComponent<RegularPolygon>();
         var operands = GetCSGChildren();
 
         if (poly)
         {
-            ret.Add(new PolygonPath(poly.GetPoints(true).points));
+            MultiPolygon2i set = new MultiPolygon2i();
+            set.Add(poly.GetPoints());
+            ret.Add(set);
         }
-        else
+        else if (operands.Count >= 2)
         {
-            foreach(var ctrl in operands)
-                ret.AddRange(ctrl.GetPaths());
+            ret.Add(operands[0].ComputePath());
+            ret.Add(operands[1].ComputePath());
         }
         return ret;
     }
 
-    public List<CSGController2.PolygonPath> GetPaths()
-    {
-        List<CSGController2.PolygonPath> ret = new List<CSGController2.PolygonPath>();
-        RegularPolygon poly = GetComponent<RegularPolygon>();
-        var operands = GetCSGChildren();
-
-        if (poly)
-            ret.Add(new PolygonPath(poly.GetPoints(true).points));
-        else
-        {
-            foreach(var ctrl in operands)
-                ret.AddRange(ctrl.GetPaths());
-        }
-        return ret;
-    }
-
-    public PolygonOperation.OperationType GetOperation()
+    public OperationType GetOperation()
     {
         PolygonOperation op = GetComponent<PolygonOperation>();
         if (op != null)
             return op.operation;
-        return PolygonOperation.OperationType.Union;
+        return OperationType.Union;
     }
 }

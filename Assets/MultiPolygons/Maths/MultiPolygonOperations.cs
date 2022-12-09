@@ -133,8 +133,6 @@ public class MultiPolygon2iOperation
             it++;
         }
 
-        // Debug.Log("GetSide " + MultiPolygon2i + " vs " + other + "=> i=" + i + "; o=" + o + "; e=" + e);
-
         if (i > 0 && o > 0)
             return Side.Cross;
         if (i == 0 && o == 0 && e > 0)
@@ -151,8 +149,7 @@ public class MultiPolygon2iOperation
         if (set.Composes(node))
             return Side.Edge;
 
-        var c = MultiPolygonWindingNumber(set, node); // RayCastOnPathsCount(MultiPolygon2i, node);
-        // Debug.Log("raycast = " + c);
+        var c = MultiPolygonWindingNumber(set, node);
         return c > 0 ? Side.In : Side.Out;
     }
 
@@ -164,31 +161,6 @@ public class MultiPolygon2iOperation
         Vector2Int outPoint = outPoints[0];
         foreach(var p in outPoints) outPoint = Vector2Int.Min(outPoint, p);
         return outPoint;
-    }
-
-    static public int RayCastOnPathsCount(MultiPolygon2i MultiPolygon2i, Vector2Int node)
-    {
-        HashSet<Vector2> set = new HashSet<Vector2>();
-
-        Vector2Int ext = GetOutsidePointForRayCast(MultiPolygon2i, node);
-
-        VecIntOperation.PolygonRayCastInfo info = new VecIntOperation.PolygonRayCastInfo();
-
-        foreach (var path in MultiPolygon2i.boundaries)
-        {
-            if (path.Composes(node))
-            {
-                set.Add(node);
-                continue;
-            }
-
-            foreach(var ipt in VecIntOperation.PolygonRayCastExt2( ext, node, path.nodes, ref info))
-            {
-                set.Add(ipt);
-            }
-        }
-
-        return set.Count;
     }
 
     static public List<KeyValuePair<Vector2, LinearRing2i>> RayCastOnPaths(MultiPolygon2i MultiPolygon2i, Vector2Int node)

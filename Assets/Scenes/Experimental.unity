@@ -154,8 +154,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lineA: {x: -521, y: -234}
   lineB: {x: 181, y: 75}
-  point: {x: -54, y: 70}
-  distance: 90.0981
+  point: {x: -91, y: -44}
+  distance: 0.6649333
   result: 2
 --- !u!4 &987947664
 Transform:

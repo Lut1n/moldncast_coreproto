@@ -312,7 +312,6 @@ public class RingTraversal
 
             if (stack.Contains(p))
             {
-                // Debug.Log("yep " + p + " at it " + debugit);
                 // build ring and add it the the result
                 LinearRing2i ret = new LinearRing2i();
                 int firstIndex = Index(stack, p);
@@ -325,12 +324,9 @@ public class RingTraversal
                 
                 ret.ComputeOrientation();
                 debugadd++;
-                // Debug.Log("add ring size = " + ret.Count() + " at it " + debugit);
 
                 if (ret.Count() > 2)
                     outResult.Add(new LinearRing2i(ret));
-
-                // Debug.Log("stack size after adding : " + stack.Count);
             }
 
             var nextIdx = NextIndex(sets, current);
